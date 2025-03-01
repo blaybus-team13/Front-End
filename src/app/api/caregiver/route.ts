@@ -86,30 +86,27 @@ export async function POST(req: Request) {
       );
     }
 
-    // 특정 요양보호사 찾기
-    const caregiverIndex = caregiverData.findIndex(
-      (caregiver) => caregiver.id === id
-    );
-    if (caregiverIndex === -1) {
-      return NextResponse.json(
-        { success: false, message: "요양보호사 정보를 찾을 수 없습니다!" },
-        { status: 404 }
-      );
-    }
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("caregivers");
 
-    // 해당 요양보호사의 구직 정보 업데이트
-    caregiverData[caregiverIndex] = {
-      ...caregiverData[caregiverIndex],
-      isJobSeeking: true,
-      isActive: true, // 자동 활성화
-      jobInfo: { days, times, hourlyWage },
-    };
+    const caregiver = await collection.updateOne(
+      { id: Number(id) },
+      {
+        $set: {
+          isJobSeeking: true,
+          isActive: true,
+          jobInfo: { days, times, hourlyWage },
+        },
+      }
+    );
+    client.close();
 
     return NextResponse.json(
       {
         success: true,
         message: "구직 정보 저장 완료!",
-        data: caregiverData[caregiverIndex],
+        data: caregiver,
       },
       { status: 200 }
     );
@@ -126,17 +123,20 @@ export async function PATCH(req: Request) {
   try {
     const { id, isActive } = await req.json();
 
-    // 특정 요양보호사 찾기
-    const caregiverIndex = caregiverData.findIndex((c) => c.id === Number(id));
-    if (caregiverIndex === -1) {
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("caregivers");
+
+    const caregiver = await collection.findOne({ id: Number(id) });
+    if (!caregiver) {
       return NextResponse.json(
-        { success: false, message: "요양보호사 정보를 찾을 수 없습니다!" },
+        { success: false, message: "요양보호사 정보를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
     // 유효성 검사: 구직 정보 없이 활성화 불가
-    if (!caregiverData[caregiverIndex].isJobSeeking && isActive) {
+    if (!caregiver.isJobSeeking && isActive) {
       return NextResponse.json(
         { success: false, message: "구직 정보를 먼저 입력해주세요!" },
         { status: 400 }
@@ -144,16 +144,16 @@ export async function PATCH(req: Request) {
     }
 
     // 구직 상태 업데이트
-    caregiverData[caregiverIndex] = {
-      ...caregiverData[caregiverIndex],
-      isActive: isActive ?? caregiverData[caregiverIndex].isActive,
-    };
+    caregiver["isActive"] = isActive;
+
+    collection.updateOne({ id: Number(id) }, { $set: { isActive } });
+    client.close();
 
     return NextResponse.json(
       {
         success: true,
         message: "구직 상태 변경 완료!",
-        data: caregiverData[caregiverIndex],
+        data: caregiver,
       },
       { status: 200 }
     );
@@ -170,26 +170,31 @@ export async function PUT(req: Request) {
   try {
     const { id, days, times, hourlyWage } = await req.json();
 
-    // 특정 요양보호사 찾기
-    const caregiverIndex = caregiverData.findIndex((c) => c.id === Number(id));
-    if (caregiverIndex === -1) {
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("caregivers");
+
+    const caregiver = await collection.findOne({ id: Number(id) });
+    if (!caregiver) {
       return NextResponse.json(
-        { success: false, message: "요양보호사 정보를 찾을 수 없습니다!" },
+        { success: false, message: "요양보호사 정보를 찾을 수 없습니다." },
         { status: 404 }
       );
     }
 
-    // 기존 정보 수정
-    caregiverData[caregiverIndex] = {
-      ...caregiverData[caregiverIndex],
-      jobInfo: { days, times, hourlyWage },
-    };
+    caregiver["jobInfo"] = { days, times, hourlyWage };
+
+    await collection.updateOne(
+      { id: Number(id) },
+      { $set: { jobInfo: { days, times, hourlyWage } } }
+    );
+    client.close();
 
     return NextResponse.json(
       {
         success: true,
         message: "구직 정보가 수정되었습니다.",
-        data: caregiverData[caregiverIndex],
+        data: caregiver,
       },
       { status: 200 }
     );
