@@ -36,7 +36,7 @@ export default function AccountPage() {
     setError(null);
 
     try {
-      const response = await fetch("https://0a69-121-134-41-93.ngrok-free.app/auth/carer/register", {
+      const response = await fetch("/api/carer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,9 @@ export default function AccountPage() {
 
       {/* 아이디 입력 필드 */}
       <div className="mt-6">
-        <label className="block text-sm font-medium text-gray-700">아이디</label>
+        <label className="block text-sm font-medium text-gray-700">
+          아이디
+        </label>
         <input
           type="text"
           placeholder="아이디를 입력해주세요."
@@ -101,12 +103,16 @@ export default function AccountPage() {
 
       {/* 비밀번호 입력 필드 */}
       <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700">비밀번호</label>
+        <label className="block text-sm font-medium text-gray-700">
+          비밀번호
+        </label>
         <input
           type="password"
           placeholder="비밀번호를 입력해주세요."
           value={password}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setPassword(e.target.value)
+          }
           className="w-full p-3 border border-gray-300 rounded-lg mt-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
       </div>
