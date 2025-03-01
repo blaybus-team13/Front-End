@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import { MongoClient } from "mongodb";
+
+const uri = process.env.MONGODB_URI || "";
+const dbName = process.env.MONGODB_DB || "";
 
 // 요양보호사 초기 데이터 (배열 형태)
 let caregiverData = [
@@ -26,21 +30,47 @@ let caregiverData = [
   },
 ];
 
+async function getCaregivers() {
+  try {
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("caregivers");
+
+    const caregivers = (await collection.find({}).toArray()).sort(
+      (a, b) => a.id - b.id
+    );
+    client.close();
+
+    return caregivers;
+  } catch (e) {
+    console.log(e);
+    return caregiverData;
+  }
+}
+
 /** GET 요청: 특정 ID 또는 특정 어르신에게 맞는 요양보호사 추천 */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
+  const caregiverData = await getCaregivers();
+
   if (id) {
     const caregiver = caregiverData.find((c) => c.id === Number(id));
     if (!caregiver) {
-      return NextResponse.json({ success: false, message: "요양보호사 정보를 찾을 수 없습니다." }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "요양보호사 정보를 찾을 수 없습니다." },
+        { status: 404 }
+      );
     }
     // ✅ success: true 추가
     return NextResponse.json({ success: true, caregiver }, { status: 200 });
   }
 
-  return NextResponse.json({ success: true, caregivers: caregiverData }, { status: 200 });
+  return NextResponse.json(
+    { success: true, caregivers: caregiverData },
+    { status: 200 }
+  );
 }
 
 /** POST 요청: 특정 요양보호사 구직 정보 저장 */
@@ -50,13 +80,21 @@ export async function POST(req: Request) {
 
     // 유효성 검사
     if (!id || !days?.length || !times?.length || !hourlyWage) {
-      return NextResponse.json({ success: false, message: "모든 정보를 입력해주세요!" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "모든 정보를 입력해주세요!" },
+        { status: 400 }
+      );
     }
 
     // 특정 요양보호사 찾기
-    const caregiverIndex = caregiverData.findIndex((caregiver) => caregiver.id === id);
+    const caregiverIndex = caregiverData.findIndex(
+      (caregiver) => caregiver.id === id
+    );
     if (caregiverIndex === -1) {
-      return NextResponse.json({ success: false, message: "요양보호사 정보를 찾을 수 없습니다!" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "요양보호사 정보를 찾을 수 없습니다!" },
+        { status: 404 }
+      );
     }
 
     // 해당 요양보호사의 구직 정보 업데이트
@@ -67,14 +105,19 @@ export async function POST(req: Request) {
       jobInfo: { days, times, hourlyWage },
     };
 
-    return NextResponse.json({
-      success: true,
-      message: "구직 정보 저장 완료!",
-      data: caregiverData[caregiverIndex],
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "구직 정보 저장 완료!",
+        data: caregiverData[caregiverIndex],
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ success: false, message: "구직 정보 저장 실패", error }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "구직 정보 저장 실패", error },
+      { status: 500 }
+    );
   }
 }
 
@@ -86,12 +129,18 @@ export async function PATCH(req: Request) {
     // 특정 요양보호사 찾기
     const caregiverIndex = caregiverData.findIndex((c) => c.id === Number(id));
     if (caregiverIndex === -1) {
-      return NextResponse.json({ success: false, message: "요양보호사 정보를 찾을 수 없습니다!" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "요양보호사 정보를 찾을 수 없습니다!" },
+        { status: 404 }
+      );
     }
 
     // 유효성 검사: 구직 정보 없이 활성화 불가
     if (!caregiverData[caregiverIndex].isJobSeeking && isActive) {
-      return NextResponse.json({ success: false, message: "구직 정보를 먼저 입력해주세요!" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "구직 정보를 먼저 입력해주세요!" },
+        { status: 400 }
+      );
     }
 
     // 구직 상태 업데이트
@@ -100,14 +149,19 @@ export async function PATCH(req: Request) {
       isActive: isActive ?? caregiverData[caregiverIndex].isActive,
     };
 
-    return NextResponse.json({
-      success: true,
-      message: "구직 상태 변경 완료!",
-      data: caregiverData[caregiverIndex],
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "구직 상태 변경 완료!",
+        data: caregiverData[caregiverIndex],
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ success: false, message: "구직 상태 변경 실패", error }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "구직 상태 변경 실패", error },
+      { status: 500 }
+    );
   }
 }
 
@@ -119,7 +173,10 @@ export async function PUT(req: Request) {
     // 특정 요양보호사 찾기
     const caregiverIndex = caregiverData.findIndex((c) => c.id === Number(id));
     if (caregiverIndex === -1) {
-      return NextResponse.json({ success: false, message: "요양보호사 정보를 찾을 수 없습니다!" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "요양보호사 정보를 찾을 수 없습니다!" },
+        { status: 404 }
+      );
     }
 
     // 기존 정보 수정
@@ -128,14 +185,19 @@ export async function PUT(req: Request) {
       jobInfo: { days, times, hourlyWage },
     };
 
-    return NextResponse.json({
-      success: true,
-      message: "구직 정보가 수정되었습니다.",
-      data: caregiverData[caregiverIndex],
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "구직 정보가 수정되었습니다.",
+        data: caregiverData[caregiverIndex],
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ success: false, message: "구직 정보 수정 실패", error }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "구직 정보 수정 실패", error },
+      { status: 500 }
+    );
   }
 }
 
@@ -146,7 +208,10 @@ export async function DELETE(req: Request) {
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ success: false, message: "삭제할 ID를 입력해주세요." }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "삭제할 ID를 입력해주세요." },
+        { status: 400 }
+      );
     }
 
     // 특정 요양보호사 삭제
@@ -154,15 +219,23 @@ export async function DELETE(req: Request) {
     caregiverData = caregiverData.filter((c) => c.id !== Number(id));
 
     if (caregiverData.length === initialLength) {
-      return NextResponse.json({ success: false, message: "요양보호사를 찾을 수 없습니다." }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "요양보호사를 찾을 수 없습니다." },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "요양보호사가 삭제되었습니다.",
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "요양보호사가 삭제되었습니다.",
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    return NextResponse.json({ success: false, message: "요양보호사 삭제 실패", error }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "요양보호사 삭제 실패", error },
+      { status: 500 }
+    );
   }
 }
