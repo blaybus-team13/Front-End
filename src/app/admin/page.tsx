@@ -199,37 +199,6 @@ export default function AdminDashboard() {
     }
   };
 
-  /** ✅ 제안하기 API 요청 */
-  const handleProposal = async (caregiverId: number, elderId: number) => {
-    try {
-        const response = await fetch("/api/propose", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                caregiverId,
-                elderId,
-                status: "pending", // 대기 상태
-            }),
-        });
-
-        const data = await response.json();
-        console.log("✅ 제안 전송 결과:", data); // 🔥 응답 확인
-
-        if (response.ok) {
-            alert("제안이 성공적으로 전송되었습니다.");
-            // 제안 목록을 다시 불러오기 위해 상태 업데이트
-            setProposals(prev => [...prev, { caregiverId, elderId, status: "pending" }]);
-        } else {
-            alert(`제안 전송 실패: ${data.message}`);
-        }
-    } catch (error) {
-        console.error("제안 전송 오류:", error);
-        alert("제안 전송 중 오류가 발생했습니다.");
-    }
-};
-
-
-
   /** 프로필 페이지 넘기기 */
   const handleNext = () => {
     if (filteredElders.length > 0) {
