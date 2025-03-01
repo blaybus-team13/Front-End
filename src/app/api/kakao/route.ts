@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-  const KAKAO_API_KEY = "50f92a6f823acfa0e0636e329463bb8d";
+const KAKAO_API_KEY = process.env.KAKAO_API_KEY || "";
 
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query");
 
     if (!query) {
-      return NextResponse.json({ message: "Missing query parameter" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Missing query parameter" },
+        { status: 400 }
+      );
     }
 
     const response = await fetch(

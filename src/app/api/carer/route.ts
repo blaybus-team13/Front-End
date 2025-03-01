@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI || "";
-const dbName = process.env.MONGODB_DB || "";
+const { uri, dbName } = require("../../../utils/db_connect");
 
 /** POST 요청: 회원등록 */
 export async function POST(req: Request) {

@@ -1,4 +1,7 @@
+import { MongoClient } from "mongodb";
 import { NextResponse } from "next/server";
+
+const { uri, dbName } = require("../../../utils/db_connect");
 
 // 전역 변수 대신 상태를 유지할 저장소 사용 (임시 메모리 저장)
 let proposals: Proposal[] = [];
@@ -22,13 +25,18 @@ export async function GET(req: Request) {
       );
     }
 
-    // 특정 요양보호사에 해당하는 제안 필터링
-    const filteredProposals = proposals.filter(
-      (proposal) => proposal.caregiverId === caregiverId
-    );
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("proposals");
+
+    const proposals = collection.find({
+      caregiverId: caregiverId,
+    });
+
+    client.close();
 
     return NextResponse.json(
-      { success: true, proposals: filteredProposals },
+      { success: true, proposals: proposals },
       { status: 200 }
     );
   } catch (error) {
@@ -64,8 +72,14 @@ export async function POST(req: Request) {
     }
 
     // 새로운 제안 객체 추가
+
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("proposals");
+
     const newProposal: Proposal = { caregiverId, elderId, status };
-    proposals.push(newProposal);
+
+    await collection.insertOne(newProposal);
 
     return NextResponse.json(
       {

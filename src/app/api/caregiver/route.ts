@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI || "";
-const dbName = process.env.MONGODB_DB || "";
+const { uri, dbName } = require("../../../utils/db_connect");
 
 // 요양보호사 초기 데이터 (배열 형태)
 let caregiverData = [

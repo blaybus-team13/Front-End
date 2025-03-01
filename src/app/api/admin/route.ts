@@ -1,7 +1,6 @@
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI || "";
-const dbName = process.env.MONGODB_DB || "";
+const { uri, dbName } = require("../../../utils/db_connect");
 
 let admins = [
   {
