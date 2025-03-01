@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 잔물결 - Blaybus Team 13
 
-## Getting Started
+## 기술스택
 
-First, run the development server:
+- 프론트엔드 / 백엔드 - Next.js
+- Database - MongoDB
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 실행방법
+
+- `MongoDB`가 설치 되어 있어야 함
+- `.env` 환경변수 파일을 현재 디렉토리에 생성
+- `npm install`
+- `npm start`
+
+### 필요 환경변수 목록 (.env)
+
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+    MONGODB_USER=(MongoDB 계정)
+    MONGODB_PASSWORD=(MongoDB 비밀번호)
+    MONGODB_HOST=(MongoDB를 호스팅하는 주소)
+    MONGODB_PORT=(MongoDB 포트번호)
+    MONGODB_DB=(MongoDB Database 이름)
+    KAKAO_API_KEY=(Kakao 검색 API 사용을 위한 API Key)
+```
