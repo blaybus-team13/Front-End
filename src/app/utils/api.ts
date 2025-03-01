@@ -25,7 +25,7 @@ interface ApiResponse {
 // 🔹 로그인 API 요청
 export async function loginUser(data: LoginData): Promise<ApiResponse> {
   try {
-    const response = await fetch(`${BASE_URL}/auth/login`, {
+    const response = await fetch(`/api/auth`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
