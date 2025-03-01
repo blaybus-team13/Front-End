@@ -1,46 +1,78 @@
+import { MongoClient } from "mongodb";
+
+const uri = process.env.MONGODB_URI || "";
+const dbName = process.env.MONGODB_DB || "";
+
 let admins = [
-    {
-        id: 1,
-        name: "최관리",
-        username: "admin1",
-        role: "센터장",
-    },
-    {
-        id: 2,
-        name: "김매니저",
-        username: "manager2",
-        role: "매니저",
-    }
+  {
+    id: 1,
+    name: "최관리",
+    username: "admin1",
+    role: "센터장",
+  },
+  {
+    id: 2,
+    name: "김매니저",
+    username: "manager2",
+    role: "매니저",
+  },
 ];
+
+async function getAdmins() {
+  try {
+    const client = await MongoClient.connect(uri);
+    const database = client.db(dbName);
+    const collection = database.collection("admins");
+
+    const admins = (await collection.find({}).toArray()).sort(
+      (a, b) => a.id - b.id
+    );
+    client.close();
+
+    return admins;
+  } catch (e) {
+    console.log(e);
+    return admins;
+  }
+}
 
 // 관리자 정보 가져오기
 export async function GET(req: Request) {
-    try {
-        const url = new URL(req.url);
-        const id = url.searchParams.get("id");
+  try {
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
 
-        if (id) {
-            const admin = admins.find((admin) => admin.id === parseInt(id));
-            if (!admin) {
-                return new Response(
-                    JSON.stringify({ success: false, message: "해당 ID의 관리자를 찾을 수 없음" }),
-                    { status: 404, headers: { "Content-Type": "application/json" } }
-                );
-            }
-            return new Response(JSON.stringify({ success: true, admin }), {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-            });
-        }
+    const admins = await getAdmins();
 
-        return new Response(JSON.stringify({ success: true, admins }), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-        });
-    } catch (error) {
+    if (id) {
+      const admin = admins.find((admin) => admin.id === parseInt(id));
+      if (!admin) {
         return new Response(
-            JSON.stringify({ success: false, message: "관리자 데이터 로드 실패", error }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            message: "해당 ID의 관리자를 찾을 수 없음",
+          }),
+          { status: 404, headers: { "Content-Type": "application/json" } }
         );
+      }
+      return new Response(JSON.stringify({ success: true, admin }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
+
+    return new Response(JSON.stringify({ success: true, admins }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: "관리자 데이터 로드 실패",
+        error,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }
